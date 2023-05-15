@@ -1,8 +1,8 @@
+import json
 import openai
 import os
 from flask import request
 from flask_restx import Resource
-from langdetect import detect
 from os.path import join, dirname
 from dotenv import load_dotenv
 
@@ -17,9 +17,17 @@ if OPENAPI_KEY:
     openai.api_key = OPENAPI_KEY
 
 def translate_in_desired_language(text, language):
+    prompt = f'''
+    Your task is to identify the language (in ISO Language Code) the text enclosed in triple back ticks is written in. \
+    Then translate that piece of text into the langauge prescribed in <>. \
+    The output should be in JSON using 'translation' and 'detected_language' as keys. \
+    
+    <{language}>
+    ```{text}```
+    '''
     params = {
-        "engine": "text-davinci-003",
-        "prompt": f"Translate the following text into {language}: {text}",
+        "model": "gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": prompt}],
         "temperature": 0,
         "max_tokens": 60,
         "top_p": 1,
@@ -27,11 +35,11 @@ def translate_in_desired_language(text, language):
         "presence_penalty": 0
     }
     # Generate the translation using OpenAI's GPT-3 language model
-    response = openai.Completion.create(**params)
+    response = openai.ChatCompletion.create(**params)
 
     # Extract the translated text from the response
-    output_text = response.choices[0].text.strip()
-    return output_text
+    output_dict = json.loads(response.choices[0].message.content)
+    return output_dict
 
 
 @api.route("")
@@ -45,9 +53,7 @@ class TranslatorOperation(Resource):
             args = request.args.copy()
             output_lan = args.get("output_language")
             text = args.get("text")
-            detected_language = detect(text)
-            result = translate_in_desired_language(text, output_lan)
-            result.strip("\"")
-            return {"translation": result, "detected_language": detected_language, "error": None}, 200
+            output_dict = translate_in_desired_language(text, output_lan)
+            return {"translation": output_dict['translation'], "detected_language": output_dict['detected_language'], "error": None}, 200
         except Exception as e:
             return {"translation": None, "error": e.__str__()}, 200
