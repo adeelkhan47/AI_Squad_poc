@@ -1,12 +1,20 @@
 import openai
+import os
 from flask import request
 from flask_restx import Resource
 from langdetect import detect
+from os.path import join, dirname
+from dotenv import load_dotenv
 
 from . import api, schema
 
-openai.api_key = "enter your key"
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
+OPENAPI_KEY = os.getenv('OPENAPI_KEY')
+
+if OPENAPI_KEY:
+    openai.api_key = OPENAPI_KEY
 
 def translate_in_desired_language(text, language):
     params = {
