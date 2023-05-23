@@ -10,3 +10,12 @@ GetTranslation = api.model(
         "error": fields.String(allow_null=True, skip_none=True),
     },
 )
+
+GetSpeechToText = api.model(
+    "GetSpeechToText",
+    {
+        "text": fields.String(allow_null=True),
+        "language_code": fields.String(allow_null=True),
+        "error": fields.String(allow_null=True, skip_none=True)
+    }
+)

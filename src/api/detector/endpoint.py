@@ -7,11 +7,13 @@ from os.path import join, dirname
 from dotenv import load_dotenv
 
 from . import api, schema
+from .speech_util import SpeechToText
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
 OPENAPI_KEY = os.getenv('OPENAPI_KEY')
+ASSEMBLYAI_KEY = os.getenv('ASSEMBLYAI_KEY')
 
 if OPENAPI_KEY:
     openai.api_key = OPENAPI_KEY
@@ -55,5 +57,21 @@ class TranslatorOperation(Resource):
             text = args.get("text")
             output_dict = translate_in_desired_language(text, output_lan)
             return {"translation": output_dict['translation'], "detected_language": output_dict['detected_language'], "error": None}, 200
+        except Exception as e:
+            return {"translation": None, "error": e.__str__()}, 200
+
+
+@api.route("/speechtotext")
+class GetSpeechToText(Resource):
+    @api.doc("Speech to Text endpoint")
+    @api.marshal_list_with(schema.GetSpeechToText)
+    @api.param("audio_path", required=True)
+    def get(self):
+        try:
+            args = request.args.copy()
+            audio_path = args.get("audio_path")
+            upload_url = SpeechToText().upload_file(ASSEMBLYAI_KEY, audio_path)
+            transcript = SpeechToText().create_transcript(ASSEMBLYAI_KEY, upload_url)
+            return {"text": transcript['text'], 'language_code': transcript['language_code'], "error": None}, 200
         except Exception as e:
             return {"translation": None, "error": e.__str__()}, 200
