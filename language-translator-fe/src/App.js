@@ -3,7 +3,7 @@ import './App.css';
 import {useState} from "react";
 
 async function fetchTranslation(language, text) {
-    const url = `http://127.0.0.1:8000/detector?output_language=${language}&text=${text}`;
+    const url = `http://127.0.0.1:5000/detector?output_language=${language}&text=${text}`;
     const response = await fetch(url);
     const data = await response.json();
     return data.translation;
