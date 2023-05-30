@@ -24,6 +24,14 @@ if OPENAPI_KEY:
     openai.api_key = OPENAPI_KEY
 
 
+def perform_task(query):
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=query,
+        max_tokens=200
+    )
+    return response.choices[0].text.strip()
+
 def get_speech_to_text(path):
     model = whisper.load_model("base")
 
@@ -110,6 +118,8 @@ class GetSpeechToText(Resource):
             file_path = os.path.join(AUDIOS_PATH, file.filename)
             file.save(file_path)
             text = get_speech_to_text(file_path)
-            return {'text': text}
+            response = perform_task(text)
+            print(response)
+            return {'text': response}
         except Exception as e:
             return {"translation": None, "error": e.__str__()}, 200
