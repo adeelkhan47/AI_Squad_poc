@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+
 import openai
 import os
 from flask import request
@@ -14,6 +16,8 @@ load_dotenv(dotenv_path)
 
 OPENAPI_KEY = os.getenv('OPENAPI_KEY')
 ASSEMBLYAI_KEY = os.getenv('ASSEMBLYAI_KEY')
+ROOT_DIR = Path(__file__).parents[3]
+AUDIOS_PATH = os.path.join(ROOT_DIR, "audios")
 
 if OPENAPI_KEY:
     openai.api_key = OPENAPI_KEY
@@ -73,5 +77,14 @@ class GetSpeechToText(Resource):
             upload_url = SpeechToText().upload_file(ASSEMBLYAI_KEY, audio_path)
             transcript = SpeechToText().create_transcript(ASSEMBLYAI_KEY, upload_url)
             return {"text": transcript['text'], 'language_code': transcript['language_code'], "error": None}, 200
+        except Exception as e:
+            return {"translation": None, "error": e.__str__()}, 200
+
+    def post(self):
+        try:
+            file = request.files['file']
+            file_path = os.path.join(AUDIOS_PATH, file.filename)
+            file.save(file_path)
+            return {'message': 'File uploaded successfully'}
         except Exception as e:
             return {"translation": None, "error": e.__str__()}, 200
