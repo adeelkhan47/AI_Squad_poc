@@ -5,7 +5,6 @@ import './App.css';
 function App() {
   return (
     <div>
-      <h1>Audio Uploader</h1>
       <AudioUploader />
     </div>
   );
