@@ -16,7 +16,7 @@ const AudioUploader = () => {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      axios.post('http://127.0.0.1:8000/detector/speechtotext', formData)
+      axios.post('http://127.0.0.1:5000/detector/speechtotext', formData)
         .then((response) => {
           console.log(response.data); // Handle the response from Flask
         })
