@@ -1,12 +1,13 @@
 import json
+import os
+from os.path import join, dirname
 from pathlib import Path
 
 import openai
-import os
+import whisper
+from dotenv import load_dotenv
 from flask import request
 from flask_restx import Resource
-from os.path import join, dirname
-from dotenv import load_dotenv
 
 from . import api, schema
 from .speech_util import SpeechToText
@@ -21,6 +22,28 @@ AUDIOS_PATH = os.path.join(ROOT_DIR, "audios")
 
 if OPENAPI_KEY:
     openai.api_key = OPENAPI_KEY
+
+
+def get_speech_to_text(path):
+    model = whisper.load_model("base")
+
+    # load audio and pad/trim it to fit 30 seconds
+    audio = whisper.load_audio(path)
+    audio = whisper.pad_or_trim(audio)
+
+    # make log-Mel spectrogram and move to the same device as the model
+    mel = whisper.log_mel_spectrogram(audio).to(model.device)
+
+    # detect the spoken language
+    _, probs = model.detect_language(mel)
+    print(f"Detected language: {max(probs, key=probs.get)}")
+    # decode the audio
+    options = whisper.DecodingOptions(fp16=False)
+    result = whisper.decode(model, mel, options)
+
+    # print the recognized text
+    return result.text
+
 
 def translate_in_desired_language(text, language):
     prompt = f'''
@@ -60,7 +83,8 @@ class TranslatorOperation(Resource):
             output_lan = args.get("output_language")
             text = args.get("text")
             output_dict = translate_in_desired_language(text, output_lan)
-            return {"translation": output_dict['translation'], "detected_language": output_dict['detected_language'], "error": None}, 200
+            return {"translation": output_dict['translation'], "detected_language": output_dict['detected_language'],
+                    "error": None}, 200
         except Exception as e:
             return {"translation": None, "error": e.__str__()}, 200
 
@@ -85,6 +109,7 @@ class GetSpeechToText(Resource):
             file = request.files['file']
             file_path = os.path.join(AUDIOS_PATH, file.filename)
             file.save(file_path)
-            return {'message': 'File uploaded successfully'}
+            text = get_speech_to_text(file_path)
+            return {'text': text}
         except Exception as e:
             return {"translation": None, "error": e.__str__()}, 200
