@@ -36,4 +36,29 @@
     resize: none;
     margin-top: 20px;
   }
+
+  .record-btn {
+    padding: 10px 20px;
+    background-color: #0d4b0d;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .stop-btn {
+    padding: 10px 20px;
+    background-color: #f07339;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    outline: none;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+  .disabled-button { background-color: lightgray; cursor: not-allowed; pointer-events: none; }
   
