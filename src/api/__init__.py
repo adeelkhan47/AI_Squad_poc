@@ -8,7 +8,7 @@ from .detector.endpoint import api as detector_api
 
 blueprint = Blueprint("api", __name__)
 
-api = Api(blueprint, title="AI_Squad_POC", version="0.1", description="REST")
+api = Api(blueprint, title="AI_Squad_POC", version="0.2", description="REST")
 
 api.add_namespace(detector_api)
 
